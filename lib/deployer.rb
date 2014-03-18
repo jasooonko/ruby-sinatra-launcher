@@ -4,15 +4,14 @@ require 'bgmcclient'
 
 class Deployer
 
-  SCRIPT_DIR = '/opt/bamgrid/sbin'
-
-  def initialize(params)
+  def initialize(config, params)
+    @config = config
     @params = params
   end	
 	
   def start(logger)
     opt = get_options
-    cmd = "#{SCRIPT_DIR}/#{@params[:job]} #{opt} >> #{logger.log_file}" 
+    cmd = "#{config['script_dir']}/#{@params[:job]} #{opt} >> #{logger.log_file}" 
     logger.info("Command: #{cmd}")
     system(cmd)
   end

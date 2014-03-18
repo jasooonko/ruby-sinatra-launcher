@@ -4,11 +4,10 @@ require 'logger'
 
 class BGLogger
  
-  LOG_DIR = '/home/jko/bamgrid/log' 
   attr_accessor :logger, :log_file
   
-  def initialize(log_file)
-    @log_file = LOG_DIR+"/"+log_file 
+  def initialize(config,log_file)
+    @log_file = config['log_dir']+"/"+log_file 
     @logger = Logger.new(@log_file)
     @logger.level = Logger::DEBUG
     @logger.formatter = proc do |severity, datetime, progname, msg|
@@ -28,6 +27,6 @@ class BGLogger
     @logger.info(log)
   end
   def self.get_log(file)
-    File.read("#{LOG_DIR}/#{file}")
+    File.read(file)
   end
 end

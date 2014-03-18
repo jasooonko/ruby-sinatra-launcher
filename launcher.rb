@@ -17,7 +17,7 @@ set :port, 9494
   ACCEPTED = 202
   OK = 200
 
-  CONFIG = YAML.load_file("./lib/config.yaml")
+  CONFIG = YAML.load_file("./lib/config.yaml")['config']
 
   get '/' do
     puts CONFIG
@@ -29,10 +29,12 @@ set :port, 9494
     if authenticate(params[:token])
       body "Authentication Failed\n"
       return UNAUTHORIZED
-    elsif(['bgadmin','bgdeploy'].include? job)
-      deploy(job, params)
+    end
+    puts @params.to_json
+    if(['bgadmin','bgdeploy'].include? job)
+      deploy(job, @params)
     elsif 'log' == job
-      get_log(job, params)  
+      get_log(job, @params)  
     else
       return 404
     end
@@ -40,7 +42,8 @@ set :port, 9494
 
   helpers do 
     def deploy(job, params)
-      deployjob = BGDeploy.new(job, params)
+      deployjob = BGDeploy.new(job, params, CONFIG)
+      puts @params.to_json
       if(!deployjob.valid_params?)
 	body "Missing Params\n"
 	return BAD_REQUEST
@@ -53,13 +56,13 @@ set :port, 9494
     def get_log(job, params)
       body "Log file not found\n"
       begin
-	body BGLogger.get_log(params[:file])
+	body BGLogger.get_log(CONFIG['log_dir'] + "/" + params[:file])
       rescue
 	return BAD_REQUEST
       end
 	return OK
     end
     def authenticate(token)
-      return (token!=CONFIG['config']['token'])
+      return (token!=CONFIG['token'])
     end
   end

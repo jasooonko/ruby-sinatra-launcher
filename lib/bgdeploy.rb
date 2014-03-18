@@ -9,22 +9,22 @@ require 'deployer'
 
 class BGDeploy
   
-  attr_accessor :params, :token
+  attr_accessor :params 
  
-  def initialize(job, params)
-    @token = params[:token]
+  def initialize(job, params, config)
+    @config = config
     # Keep only required parameters
     keep_params = ['env','group','type','sleep','size','file']
     @params = Hash[params.select {|k,v| keep_params.include? k}]		# Params.select returns an array in ruby 1.8.7
     @params = Hash[@params.map{|(k,v)| [k.to_sym,v]}]		      		# Convert Hash key to symbol
-    
+    puts JSON.pretty_generate(config)
     #@params[:jobid] = UUIDTools::UUID.random_create
     @params[:jobid] = Time.now.strftime("%Y%m%d") + "-" + SecureRandom.hex(5)
     @params[:job] = job    
 
     # Setup logger  
     @params[:log] = "#{job}-#{@params[:jobid]}.log"
-    @logger = BGLogger.new("#{@params[:log]}")
+    @logger = BGLogger.new(config, @params[:log])
     @logger.debug("Request: #{get_params_json}")
   end
   
@@ -42,7 +42,7 @@ class BGDeploy
     puts "Parent pid: #{Process.pid}"
     pid = fork do
       puts "pid: #{Process.pid} | jobid: #{@params[:jobid]} | start"
-      deployer = Deployer.new(params)     
+      deployer = Deployer.new(@config, @params)     
       #sucess = deployer.start(@logger)
       sucess = deployer.deploy(@logger)
       puts "pid: #{Process.pid} | jobid: #{@params[:jobid]} | end"
