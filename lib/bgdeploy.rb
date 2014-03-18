@@ -43,13 +43,13 @@ class BGDeploy
     pid = fork do
       puts "pid: #{Process.pid} | jobid: #{@params[:jobid]} | start"
       deployer = Deployer.new(@config, @params)     
-      #sucess = deployer.start(@logger)
-      sucess = deployer.deploy(@logger)
+      #sucess = deployer.start(@logger)	    # shell out and call bgadmin/bgdeploy
+      sucess = deployer.deploy(@logger)	    # execute command using BGMCClient
       puts "pid: #{Process.pid} | jobid: #{@params[:jobid]} | end"
       @logger.info("pid: #{Process.pid} | jobid: #{@params[:jobid]} | success=#{sucess}")
     end
     Process.detach(pid)
-    is_running(pid)
+    #is_running(pid)
   end
 
   private

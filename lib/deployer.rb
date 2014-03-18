@@ -17,9 +17,6 @@ class Deployer
   end
 
   def deploy(logger)
-    puts @params[:env]
-    puts @params[:group]
-    puts @params[:type]
     @mcclient = BGMCClient.new
     @mcclient.mcclient.batch_size = 1
     @mcclient.mcclient.batch_sleep_time = 1

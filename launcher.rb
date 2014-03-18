@@ -25,17 +25,16 @@ set :port, 9494
   end
 
   post '/bamgrid/:job' do
-    job = params[:job] 
     ACCESS_LOG.info("Request from: " + request.ip)
-    ACCESS_LOG.info(params.to_json)
-    if authenticate(params[:token])
+    if authenticate(params.delete('token'))	    # delete token to avoid logging
       body "Authentication Failed\n"
       return UNAUTHORIZED
     end
-    if(['bgadmin','bgdeploy'].include? job)
-      deploy(job, @params)
-    elsif 'log' == job
-      get_log(job, @params)  
+    ACCESS_LOG.info(params.to_json)
+    if(['bgadmin','bgdeploy'].include? params[:job])
+      deploy(params[:job], params)
+    elsif 'log' == params[:job]
+      get_log(params[:job], params)  
     else
       return 404
     end
@@ -44,7 +43,6 @@ set :port, 9494
   helpers do 
     def deploy(job, params)
       deployjob = BGDeploy.new(job, params, CONFIG)
-      puts @params.to_json
       if(!deployjob.valid_params?)
 	body "Missing Params\n"
 	return BAD_REQUEST
@@ -64,6 +62,6 @@ set :port, 9494
 	return OK
     end
     def authenticate(token)
-      return (token!=CONFIG['token'])
+      return (token!=CONFIG['auth_token'])
     end
   end

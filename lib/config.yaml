@@ -1,4 +1,4 @@
 config:
   log_dir:    /home/jko/bamgrid/log
   script_dir: /opt/bamgrid/sbin
-  token:      LONGSTRING  
+  auth_token:      LONGSTRING  
