@@ -6,7 +6,7 @@ class BGLogger
  
   attr_accessor :logger, :log_file
   
-  def initialize(config,log_file)
+  def initialize(config,log_file, range=nil)
     @log_file = config['log_dir']+"/"+log_file 
     @logger = Logger.new(@log_file)
     @logger.level = Logger::DEBUG

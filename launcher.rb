@@ -6,7 +6,6 @@ require 'rubygems'
 require 'sinatra'
 require 'json'
 require 'yaml'
-require 'uuidtools'
 require './lib/bgdeploy'
 require './lib/bglogger'
 
@@ -18,19 +17,21 @@ set :port, 9494
   OK = 200
 
   CONFIG = YAML.load_file("./lib/config.yaml")['config']
-
+  ACCESS_LOG = BGLogger.new(CONFIG, 'access.log', 'weekly')
+ 
   get '/' do
-    puts CONFIG
+    ACCESS_LOG.info(request.ip)
     'Hello World\n'
   end
 
   post '/bamgrid/:job' do
     job = params[:job] 
+    ACCESS_LOG.info("Request from: " + request.ip)
+    ACCESS_LOG.info(params.to_json)
     if authenticate(params[:token])
       body "Authentication Failed\n"
       return UNAUTHORIZED
     end
-    puts @params.to_json
     if(['bgadmin','bgdeploy'].include? job)
       deploy(job, @params)
     elsif 'log' == job
