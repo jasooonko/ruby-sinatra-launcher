@@ -55,10 +55,10 @@ set :port, 9494
       return ACCEPTED
     end
     def get_log(job, params)
-      body "Log file not found\n"
       begin
 	body BGLogger.get_log(CONFIG['log_dir'] + "/" + params[:file])
       rescue
+      	body "Log file not found\n"
 	return BAD_REQUEST
       end
 	return OK
