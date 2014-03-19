@@ -54,6 +54,7 @@ set :port, 9494
       body "#{deployjob.get_params_json}\n"
       return ACCEPTED
     end
+    
     def get_log(params)
       begin
 	body BGLogger.get_log(CONFIG['log_dir'] + "/" + params[:file])
@@ -63,6 +64,7 @@ set :port, 9494
       end
 	return OK
     end
+    
     def valid_token?(token)
       return (token==CONFIG['auth_token'])
     end
