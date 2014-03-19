@@ -11,19 +11,21 @@ class BGDeploy
   
   attr_accessor :params 
  
-  def initialize(job, params, config)
+  def initialize(params, config)
     @config = config
     # Keep only required parameters
-    keep_params = ['env','group','type','sleep','size','file']
+    keep_params = ['job','env','group','type','sleep','size','file']
     @params = Hash[params.select {|k,v| keep_params.include? k}]		# Params.select returns an array in ruby 1.8.7
     @params = Hash[@params.map{|(k,v)| [k.to_sym,v]}]		      		# Convert Hash key to symbol
-    puts JSON.pretty_generate(config)
-    #@params[:jobid] = UUIDTools::UUID.random_create
-    @params[:jobid] = Time.now.strftime("%Y%m%d") + "-" + SecureRandom.hex(5)
-    @params[:job] = job    
+    
+    #Generate Job ID
+    #@params[:jobid] = UUIDTools::UUID.random_create				# Universaly unique ID
+    @params[:jobid] = Time.now.strftime("%Y%m%d") + "-" + SecureRandom.hex(5)	# yyyymmdd-<nx2 digit random hex>
 
     # Setup logger  
-    @params[:log] = "#{job}-#{@params[:jobid]}.log"
+    puts @params[:job]
+    @params[:log] = "#{@params[:job]}-#{@params[:jobid]}.log"
+    puts @params[:log]
     @logger = BGLogger.new(config, @params[:log])
     @logger.debug("Request: #{get_params_json}")
   end
@@ -33,9 +35,8 @@ class BGDeploy
   end
   
   def valid_params?
-    # Verify if all required keys exist
-    required_keys = [:env,:group,:type,]
-    (required_keys - @params.keys).empty?
+    # Verify if all required keys exist in params
+    (@config['required_keys'] - @params.keys).empty?
   end
   
   def run()

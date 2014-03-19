@@ -32,17 +32,17 @@ set :port, 9494
     end
     ACCESS_LOG.info(params.to_json)
     if(['bgadmin','bgdeploy'].include? params[:job])
-      deploy(params[:job], params)
+      deploy(params)
     elsif 'log' == params[:job]
-      get_log(params[:job], params)  
+      get_log(params)  
     else
       return 404
     end
   end 
 
   helpers do 
-    def deploy(job, params)
-      deployjob = BGDeploy.new(job, params, CONFIG)
+    def deploy(params)
+      deployjob = BGDeploy.new(params, CONFIG)
       if(!deployjob.valid_params?)
 	body "Missing Params\n"
 	return BAD_REQUEST
@@ -52,7 +52,7 @@ set :port, 9494
       body "#{deployjob.get_params_json}\n"
       return ACCEPTED
     end
-    def get_log(job, params)
+    def get_log(params)
       begin
 	body BGLogger.get_log(CONFIG['log_dir'] + "/" + params[:file])
       rescue
