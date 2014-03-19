@@ -19,7 +19,7 @@ set :port, 9494
   OK = 200
 
   CONFIG = YAML.load_file("./lib/config.yaml")['config']
-  ACCESS_LOG = BGLogger.new(CONFIG, 'access.log', 'weekly')
+  ACCESS_LOG = BGLogger.new(CONFIG['log_dir'], 'access.log', 'weekly')
  
   get '/' do
     ACCESS_LOG.info(request.ip)

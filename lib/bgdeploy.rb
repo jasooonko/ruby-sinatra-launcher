@@ -23,10 +23,8 @@ class BGDeploy
     @params[:jobid] = Time.now.strftime("%Y%m%d") + "-" + SecureRandom.hex(5)	# yyyymmdd-<nx2 digit random hex>
 
     # Setup logger  
-    puts @params[:job]
-    @params[:log] = "#{@params[:job]}-#{@params[:jobid]}.log"
-    puts @params[:log]
-    @logger = BGLogger.new(config, @params[:log])
+    @params[:log_file] = "#{@params[:job]}-#{@params[:jobid]}.log"
+    @logger = BGLogger.new(config['log_dir'], @params[:log_file])
     @logger.debug("Request: #{get_params_json}")
   end
   

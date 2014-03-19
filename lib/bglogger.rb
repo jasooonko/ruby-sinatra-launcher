@@ -4,19 +4,17 @@ require 'logger'
 
 class BGLogger
  
-  attr_accessor :logger, :log_file
-  
-  def initialize(config,log_file, range=nil)
-    @log_file = config['log_dir']+"/"+log_file 
-    @logger = Logger.new(@log_file)
+  attr_accessor :logger, :log_dir, :log_file
+ 
+  def initialize(log_dir, log_file, range=nil)
+    puts 'create log file: ' + log_dir+'/'+log_file
+    @log_dir = log_dir
+    @log_file = log_file 
+    @logger = Logger.new(@log_dir + '/' + @log_file)
     @logger.level = Logger::DEBUG
     @logger.formatter = proc do |severity, datetime, progname, msg|
       "[#{datetime}][#{severity}] #{msg}\n"
     end
-  end
-  def self.get_logger(log_file)
-      instance.log_file = log_file
-      instance
   end
   def debug(log)
     puts "[DEBUG] #{log}"
