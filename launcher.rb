@@ -11,8 +11,10 @@ require './lib/bglogger'
 
 set :port, 9494
 
-  UNAUTHORIZED = 401
+  # HTTP RETURN CODES
   BAD_REQUEST = 400
+  UNAUTHORIZED = 401
+  NOT_FOUND = 404
   ACCEPTED = 202
   OK = 200
 
@@ -36,7 +38,7 @@ set :port, 9494
     elsif 'log' == params[:job]
       get_log(params)  
     else
-      return 404
+      return NOT_FOUND
     end
   end 
 
