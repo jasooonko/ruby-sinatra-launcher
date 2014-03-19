@@ -28,7 +28,7 @@ set :port, 9494
 
   post '/bamgrid/:job' do
     ACCESS_LOG.info("Request from: " + request.ip)
-    if authenticate(params.delete('token'))	    # delete token to avoid logging
+    if !valid_token?(params.delete('token'))	    # delete token to avoid logging
       body "Authentication Failed\n"
       return UNAUTHORIZED
     end
@@ -63,7 +63,7 @@ set :port, 9494
       end
 	return OK
     end
-    def authenticate(token)
-      return (token!=CONFIG['auth_token'])
+    def valid_token?(token)
+      return (token==CONFIG['auth_token'])
     end
   end
