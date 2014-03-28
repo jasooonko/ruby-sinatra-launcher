@@ -28,10 +28,6 @@ set :port, 9494
 
   post '/bamgrid/:job' do
     ACCESS_LOG.info("Request from: " + request.ip)
-    if !valid_token?(params.delete('token'))	    # delete token to avoid logging
-      body "Authentication Failed\n"
-      return UNAUTHORIZED
-    end
     ACCESS_LOG.info(params.to_json)
     if(['bgadmin','bgdeploy'].include? params[:job])
       deploy(params)
@@ -63,9 +59,5 @@ set :port, 9494
 	return BAD_REQUEST
       end
 	return OK
-    end
-    
-    def valid_token?(token)
-      return (token==CONFIG['auth_token'])
     end
   end

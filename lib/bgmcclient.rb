@@ -17,12 +17,11 @@ class BGMCClient
       :timeout=>600,
       :disctimeout=>10,
       :ttl=>600,
-      :filter=>{"fact"=>[], "compound"=>[], "cf_class"=>[], "identity"=>[], "agent"=>["shellcmd"]},
+      :filter=>{"fact"=>[], "compound"=>[], "cf_class"=>[], "identity"=>[], "agent"=>["bamgrid"]},
       :config=>"/etc/mcollective/client.cfg"
     }
     pp @mcoptions
-    @mcclient = rpcclient("shellcmd", :options => @mcoptions)
-    #pp @mcclient
+    @mcclient = rpcclient("bamgrid", :options => @mcoptions)
   end
 
   public
@@ -38,6 +37,10 @@ class BGMCClient
 
   def disctimeout=(disctimeout)
     @mcoptions[:disctimeout] = disctimeout
+  end
+
+  def token=(token)
+    @mcoptions[:token] = token
   end
 
 # Getters
@@ -71,6 +74,10 @@ class BGMCClient
       return self.process_commands
     end
   end
+  
+  def disconnect()
+    @mcclient.disconnect
+  end
 
   protected
 
@@ -87,7 +94,7 @@ class BGMCClient
     end
     # Send myCommands string over, return response object
     resultsArray = Array.new
-    @mcclient.runcmd(:cmd => myCommands) do |resp|
+    @mcclient.runcmd(:cmd => myCommands, :token => @mcoptions[:token]) do |resp|
       full_response = ""
       resplines = resp[:body][:data][:output].split("\n")
       resplines.each do |respline|

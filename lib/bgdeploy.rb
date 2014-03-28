@@ -14,7 +14,7 @@ class BGDeploy
   def initialize(params, config)
     @config = config
     # Keep only required parameters
-    keep_params = ['job','env','group','type','sleep','size','file']
+    keep_params = ['job','env','group','type','sleep','size','file','token']
     @params = Hash[params.select {|k,v| keep_params.include? k}]		# Params.select returns an array in ruby 1.8.7
     @params = Hash[@params.map{|(k,v)| [k.to_sym,v]}]		      		# Convert Hash key to symbol
     
@@ -42,10 +42,19 @@ class BGDeploy
     pid = fork do
       puts "pid: #{Process.pid} | jobid: #{@params[:jobid]} | start"
       deployer = Deployer.new(@config, @params)     
-      #sucess = deployer.start(@logger)	    # shell out and call bgadmin/bgdeploy
-      sucess = deployer.deploy(@logger)	    # execute command using BGMCClient
+      begin
+	#success = deployer.start(@logger)	    # shell out and call bgadmin/bgdeploy
+	success = deployer.deploy(@logger)	    # execute command using BGMCClient
+      rescue MCollective::DDLValidationError => ddle
+	success = false
+	@logger.info("[ERROR] #{ddle.message}")
+      rescue Exception => e
+	success = false
+	@logger.info("[ERROR] #{e.message}")
+
+      end
       puts "pid: #{Process.pid} | jobid: #{@params[:jobid]} | end"
-      @logger.info("pid: #{Process.pid} | jobid: #{@params[:jobid]} | success=#{sucess}")
+      @logger.info("pid: #{Process.pid} | jobid: #{@params[:jobid]} | success=#{success}")
     end
     Process.detach(pid)
     #is_running(pid)
