@@ -6,7 +6,7 @@ class Deployer
 
   def initialize(config, params)
     @config = config
-    params[:cmd] = 'pwd'
+    params[:cmd] = 'hostname'
     @params = params
   end	
 	
