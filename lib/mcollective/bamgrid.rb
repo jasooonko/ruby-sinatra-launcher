@@ -14,9 +14,10 @@ module MCollective
 	if(request[:token] != 'LONGSTRING')
 	  raise 'Bad Token'
 	end
-	if(request[:cmd] !~ /hostname|bgadmin|bgdeploy/)
+	if(request[:cmd] !~ /hostname|bgadminNEW|bgdeployNEW/)
 	  raise 'Invalid Command'
 	end
+	  reply[:command] = request[:cmd]
 	  reply[:output]   = %x[ #{request[:cmd]} ]
 	  reply[:time] = Time.now.to_s
 	  reply[:exitcode] = $?.exitstatus

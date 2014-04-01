@@ -31,9 +31,10 @@ action "runcmd", :description => "Executes bgadmin" do
 	    	:description => "Execution result",
            	:display_as  => "Exit Code",
       		:default     => "unknown status"
-    output  	:token,
-		:description => "token",
-		:display_as  => "token",
+
+    output  	:command,
+		:description => "Executed command",
+		:display_as  => "Command",
 		:default     => "unknown status"
 
 
