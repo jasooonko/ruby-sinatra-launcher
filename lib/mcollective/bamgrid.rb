@@ -1,3 +1,5 @@
+require 'digest/sha2'
+
 module MCollective
  module Agent
   class Bamgrid<RPC::Agent
@@ -11,7 +13,8 @@ module MCollective
                 :timeout     => 300
 
     action "runcmd" do
-	if(request[:token] != 'LONGSTRING')
+	token = Digest::SHA2.new << request[:token]
+	if(token != '37412f4a86ddf4ed751225bfaace2f0d7a364b57b90482765aa352276874aa3a')
 	  raise 'Bad Token'
 	end
 	if(request[:cmd] !~ /hostname|bgadminNEW|bgdeployNEW/)
