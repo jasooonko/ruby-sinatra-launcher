@@ -15,7 +15,7 @@ class BGMCClient
       :collective=>"mcollective",
       :verbose=>true,
       :timeout=>600,
-      :disctimeout=>5,
+      :disctimeout=>10,
       :ttl=>600,
       :filter=>{"fact"=>[], "compound"=>[], "cf_class"=>[], "identity"=>[], "agent"=>["bamgrid"]},
       :config=>"/etc/mcollective/client.cfg"
