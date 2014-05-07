@@ -16,7 +16,7 @@ class MCOagent
       :collective=>"mcollective",
       :verbose=>true,
       :timeout=>600,
-      :disctimeout=>1,
+      :disctimeout=>2,
       :ttl=>600,
       :filter=>{"fact"=>[], "compound"=>[], "cf_class"=>[], "identity"=>[], "agent"=>[@agent]},
       :config=>"/etc/mcollective/client.cfg"
@@ -47,11 +47,12 @@ class MCOagent
 
   def run_action()
     result_set = Hash.new
-    puts @params[:jdata]
-    if(@params[:action] =~ /status/)
+    puts "json_data: #{@params[:jdata]}"
+    if(@params[:action] =~ /status|runcmd/)
       @mc.send(@params[:action], @params[:jdata]) do |response|
         result_set[response[:senderid]] = response[:body][:data]
       end
+      #pp result_set
       return result_set
     else 
       puts "unknown action: #{@params[:action]}"

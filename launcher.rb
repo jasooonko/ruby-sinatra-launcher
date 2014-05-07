@@ -61,13 +61,13 @@ set :port, 9494
       jdata = JSON.parse(request.env["rack.input"].read)
       params[:jdata] = Hash[jdata.map{|(k,v)| [k.to_sym,v]}]
       mcoagent = MCOagent.new(params, CONFIG)
-      #if(!mcoagent.valid_params?)
-	#body "Missing Params\n"
-	#return BAD_REQUEST
-      #end
+      if(!mcoagent.valid_params?)
+	body "Missing Params\n"
+	return BAD_REQUEST
+      end
       headers "Content-Type" => "application/json"
-      body mcoagent.run().to_json
-      return ACCEPTED      
+      result =  mcoagent.run()
+      result.to_json
     end
     
     def get_log(params)
