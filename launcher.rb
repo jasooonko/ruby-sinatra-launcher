@@ -8,6 +8,7 @@ require 'json'
 require 'yaml'
 require './lib/bgdeploy'
 require './lib/bglogger'
+require './lib/mcoagent'
 
 set :port, 9494
 
@@ -32,12 +33,17 @@ set :port, 9494
     if(['bgadmin','bgdeploy'].include? params[:job])
       deploy(params)
     elsif 'log' == params[:job]
-      get_log(params)  
+      get_log(params) 
     else
       return NOT_FOUND
     end
   end 
-
+  post '/mco/:agent/:action' do
+    ACCESS_LOG.info("Request from: " + request.ip)
+    ACCESS_LOG.info(params.to_json)
+    mcoagent(params) 
+  end 
+  
   helpers do 
     def deploy(params)
       deployjob = BGDeploy.new(params, CONFIG)
@@ -49,6 +55,19 @@ set :port, 9494
       headers "Content-Type" => "application/json"
       body "#{deployjob.get_params_json}\n"
       return ACCEPTED
+    end
+
+    def mcoagent(params)
+      jdata = JSON.parse(request.env["rack.input"].read)
+      params[:jdata] = Hash[jdata.map{|(k,v)| [k.to_sym,v]}]
+      mcoagent = MCOagent.new(params, CONFIG)
+      #if(!mcoagent.valid_params?)
+	#body "Missing Params\n"
+	#return BAD_REQUEST
+      #end
+      headers "Content-Type" => "application/json"
+      body mcoagent.run().to_json
+      return ACCEPTED      
     end
     
     def get_log(params)

@@ -20,7 +20,7 @@ class BGDeploy
     
     #Generate Job ID
     #@params[:jobid] = UUIDTools::UUID.random_create				# Universaly unique ID
-    @params[:jobid] = Time.now.strftime("%Y%m%d%H%M") + "-" + SecureRandom.base64(5).tr('+/=','0aZ')	# yyyymmdd-<nx2 digit random hex>
+    @params[:jobid] = Time.now.strftime("%Y%m%d%H%M") + "-" + SecureRandom.base64(5).tr('+/=','0aZ')	# yyyymmdd-<random hex>
 
     # Setup logger  
     @params[:log_file] = "#{@params[:job]}-#{@params[:jobid]}.log"
