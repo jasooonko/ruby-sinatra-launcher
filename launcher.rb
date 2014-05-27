@@ -6,6 +6,7 @@ require 'rubygems'
 require 'sinatra'
 require 'json'
 require 'yaml'
+require 'securerandom'
 require './lib/bgdeploy'
 require './lib/bglogger'
 require './lib/mcoagent'
@@ -18,6 +19,7 @@ set :port, 9494
   NOT_FOUND = 404
   ACCEPTED = 202
   OK = 200
+  CREATED = 201
 
   CONFIG = YAML.load_file("./lib/config.yaml")['config']
   ACCESS_LOG = BGLogger.new(CONFIG['log_dir'], 'access.log', 'weekly')
@@ -28,8 +30,7 @@ set :port, 9494
   end
 
   post '/bamgrid/:job' do
-    ACCESS_LOG.info("Request from: " + request.ip)
-    ACCESS_LOG.info(params.to_json)
+    log_access(request.ip, params)
     if(['bgadmin','bgdeploy'].include? params[:job])
       deploy(params)
     elsif 'log' == params[:job]
@@ -38,14 +39,26 @@ set :port, 9494
       return NOT_FOUND
     end
   end 
-  post '/mco/:agent/:action' do
-    ACCESS_LOG.info("Request from: " + request.ip)
-    ACCESS_LOG.info(params.to_json)
-    mcoagent(params) 
+  
+  get '/mco/:agent/:action' do
+    log_access(request.ip, params)
+    mcoagent(params)
+    #return ACCEPTED
   end 
   
   helpers do 
+    
+    def get_jobid() 
+    	Time.now.strftime("%Y%m%d%H%M") + "-" + SecureRandom.base64(5).tr('+/=','0aZ')	# yyyymmdd-<random hex>
+    end
+
+    def log_access(ip, params)
+      ACCESS_LOG.info("Request from: " + ip)
+      ACCESS_LOG.info(params.to_json)
+    end
+
     def deploy(params)
+      params[:jobid] = "bamgrid-#{params[:job]}-#{get_jobid()}"
       deployjob = BGDeploy.new(params, CONFIG)
       if(!deployjob.valid_params?)
 	body "Missing Params\n"
@@ -58,16 +71,24 @@ set :port, 9494
     end
 
     def mcoagent(params)
-      jdata = JSON.parse(request.env["rack.input"].read)
-      params[:jdata] = Hash[jdata.map{|(k,v)| [k.to_sym,v]}]
+      params[:jobid] = "mco-#{params[:agent]}-#{get_jobid()}"
       mcoagent = MCOagent.new(params, CONFIG)
-      if(!mcoagent.valid_params?)
-	body "Missing Params\n"
-	return BAD_REQUEST
+      begin
+      	mcoagent.valid_params
+      rescue Exception => e
+        body e.message
+        return BAD_REQUEST
       end
       headers "Content-Type" => "application/json"
-      result =  mcoagent.run()
-      result.to_json
+      #result =  mcoagent.run()
+      #pp result
+      #result.to_json
+      pid = fork do
+        mcoagent.run()
+      end
+      Process.detach(pid)
+      body "#{mcoagent.get_params_json}\n"
+      return ACCEPTED
     end
     
     def get_log(params)

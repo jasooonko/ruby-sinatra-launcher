@@ -4,7 +4,7 @@ require "rubygems"
 require 'json'
 require 'bglogger'
 #require 'uuidtools'
-require 'securerandom'
+#require 'securerandom'
 require 'deployer'
 
 class BGDeploy
@@ -14,16 +14,12 @@ class BGDeploy
   def initialize(params, config)
     @config = config
     # Keep only required parameters
-    keep_params = ['job','env','group','type','sleep','size','file','token']
+    keep_params = ['job','env','group','type','sleep','size','file','token',:jobid]
     @params = Hash[params.select {|k,v| keep_params.include? k}]		# Params.select returns an array in ruby 1.8.7
     @params = Hash[@params.map{|(k,v)| [k.to_sym,v]}]		      		# Convert Hash key to symbol
     
-    #Generate Job ID
-    #@params[:jobid] = UUIDTools::UUID.random_create				# Universaly unique ID
-    @params[:jobid] = Time.now.strftime("%Y%m%d%H%M") + "-" + SecureRandom.base64(5).tr('+/=','0aZ')	# yyyymmdd-<random hex>
-
     # Setup logger  
-    @params[:log_file] = "#{@params[:job]}-#{@params[:jobid]}.log"
+    @params[:log_file] = "#{@params[:jobid]}.log"
     @logger = BGLogger.new(config['log_dir'], @params[:log_file])
     @logger.debug("Request: #{get_params_json}")
   end

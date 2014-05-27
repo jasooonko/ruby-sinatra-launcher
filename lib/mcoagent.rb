@@ -1,6 +1,6 @@
 require 'mcollective'
 require 'pp'
-
+require 'json'
 include MCollective::RPC
 
 class MCOagent
@@ -10,23 +10,48 @@ class MCOagent
     puts "agent: #{@agent}"
     @config = config
     @params = Hash[params.map{|(k,v)| [k.to_sym,v]}]
+    jdata = {}
+    @params[:jdata].split(',').each do |pair|
+      key,value = pair.split(/:/)
+      jdata[key.to_sym] = value
+    end
+    puts jdata.inspect
+    @params[:jdata] = jdata
     @options =
     {	
       :output_format=>:console,
       :collective=>"mcollective",
       :verbose=>true,
       :timeout=>600,
-      :disctimeout=>2,
+      :disctimeout=>5,
       :ttl=>600,
       :filter=>{"fact"=>[], "compound"=>[], "cf_class"=>[], "identity"=>[], "agent"=>[@agent]},
       :config=>"/etc/mcollective/client.cfg"
     }
     @mc = rpcclient(@agent, :options => @options )
+
+    # Setup logger
+    @params[:log_file] = "#{@params[:jobid]}.log"
+    puts @params[:log_file]
+    @logger = BGLogger.new(config['log_dir'], @params[:log_file])
+    @logger.debug("Request: #{get_params_json}")
   end
-  
-  def valid_params?
+ 
+  def get_params_json
+    JSON.pretty_generate(@params)
+  end
+ 
+  def valid_params()
     # Verify if all required keys exist in params
-    (@config['required_keys'] - @params.keys).empty?
+    missing = (@config['required_keys'] - @params.keys)
+    if(missing.empty? == false)
+      raise "Missing param: #{missing.inspect}"
+    end
+    if(@params[:group] == 'all')
+      raise 'Must provide group'
+    end
+
+    return missing.empty?
   end
 
   def add_filter(key, value)
@@ -40,7 +65,7 @@ class MCOagent
     @mc.batch_size = 20
     @mc.batch_sleep_time = 0
     add_filter("env", @params[:env])
-    add_filter("group", "#{@params[:group]}") if (@params[:group] != "all")
+    add_filter("group", "#{@params[:group]}") 
     add_filter("server_type", "#{@params[:type]}") if (@params[:type] != "all")
     run_action()
   end
@@ -53,9 +78,9 @@ class MCOagent
         result_set[response[:senderid]] = response[:body][:data]
       end
       #pp result_set
-      return result_set
+      @logger.info(result_set)
     else 
-      puts "unknown action: #{@params[:action]}"
+      @logger.info("unknown action: #{@params[:action]}")
     end 
   end
 
